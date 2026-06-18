@@ -1,6 +1,6 @@
 {
   "name": "@blcklab/helios",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Astronomy engine for sunrise, sunset, golden hour, and solar calculations",
   "type": "module",
   "main": "./dist/index.cjs",
