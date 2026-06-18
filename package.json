@@ -1,0 +1,49 @@
+{
+  "name": "@blacklab/helios",
+  "version": "1.0.0",
+  "description": "Astronomy engine for sunrise, sunset, golden hour, and solar calculations",
+  "type": "module",
+
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+
+  "files": [
+    "dist"
+  ],
+
+  "sideEffects": false,
+
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+
+  "keywords": [
+    "astronomy",
+    "sun",
+    "sunrise",
+    "sunset",
+    "golden-hour",
+    "solar",
+    "helios"
+  ],
+
+  "author": "Black Lab",
+  "license": "MIT",
+
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
