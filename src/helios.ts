@@ -11,8 +11,16 @@ import {
 
 const RAD = Math.PI / 180;
 const J2000 = 2451545;
+
+// Golden hour threshold: Sun altitude of -6°.
 const GOLDEN_ANGLE = -6 * RAD;
 
+/**
+ * Calculates solar events for a given location and date.
+ *
+ * @param options Observer coordinates and calculation date
+ * @returns Sunrise, sunset, golden hour, and day/night state
+ */
 export function getTimes(options: GetTimesOptions): SunTimes {
   const date = options.date ?? new Date();
 
@@ -20,13 +28,19 @@ export function getTimes(options: GetTimesOptions): SunTimes {
   const lng = options.lng * RAD;
   const lw = -lng;
 
+  // Days elapsed since J2000 epoch.
   const d = toJulian(date) - J2000;
 
   const M = solarMeanAnomaly(d);
   const L = eclipticLongitude(M);
   const dec = declination(L);
 
-  // 🌞 solar noon
+  /**
+   * Solar transit calculation.
+   *
+   * Represents the Sun's highest point in the sky
+   * adjusted for orbital eccentricity.
+   */
   const Jtransit =
     J2000 +
     d +
@@ -34,13 +48,19 @@ export function getTimes(options: GetTimesOptions): SunTimes {
     0.0053 * Math.sin(M) -
     0.0069 * Math.sin(2 * L);
 
-  // 🌅 sunrise / sunset
+  /**
+   * Sunrise and sunset are calculated from the
+   * solar hour angle around the transit time.
+   */
   const w = hourAngle(lat, dec);
 
   const sunrise = fromJulian(Jtransit - w / (2 * Math.PI));
   const sunset = fromJulian(Jtransit + w / (2 * Math.PI));
 
-  // 🌟 golden hour (physics-based)
+  /**
+   * Golden hour is based on solar altitude,
+   * not a fixed time offset.
+   */
   const wGolden = hourAngleByAltitude(lat, dec, GOLDEN_ANGLE);
 
   const goldenMorningStart = fromJulian(
@@ -73,6 +93,12 @@ export function getTimes(options: GetTimesOptions): SunTimes {
   };
 }
 
+/**
+ * Creates a reusable location-bound calculator.
+ *
+ * Avoids repeatedly passing coordinates when querying
+ * multiple dates.
+ */
 export function helios(lat: number, lng: number) {
   return {
     getTimes(date?: Date) {
