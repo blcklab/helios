@@ -4,42 +4,124 @@ export interface GetTimesOptions {
   date?: Date;
 }
 
+export interface RGBColor {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export interface SunLight {
+  /**
+   * 0 → 1
+   */
+  intensity: number;
+
+  /**
+   * Kelvin.
+   *
+   * 2000 = orange sunset
+   * 6500 = white daylight
+   */
+  colorTemperature: number;
+
+  rgb: RGBColor;
+}
+
+export interface SunDirection {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface SunPosition {
+  /**
+   * Height above horizon.
+   *
+   * 0° = horizon
+   * 90° = directly overhead
+   */
+  altitude: number;
+
+  /**
+   * Compass direction.
+   *
+   * 0°   = North
+   * 90°  = East
+   * 180° = South
+   * 270° = West
+   */
+  azimuth: number;
+}
+
+export type SunPhase =
+  | 'night'
+  | 'dawn'
+  | 'morning'
+  | 'day'
+  | 'sunset';
+
 export interface SunTimes {
   /**
-   * Sunrise time.
+   * Civil dawn.
+   *
+   * Sun reaches -6° altitude.
+   */
+  dawn: Date;
+
+  /**
+   * Sunrise.
    */
   sunrise: Date;
 
   /**
-   * Sunset time.
-   */
-  sunset: Date;
-
-  /**
    * Solar noon.
    *
-   * The moment when the Sun reaches
-   * its highest point in the sky.
+   * Sun reaches highest point.
    */
   solarNoon: Date;
 
   /**
-   * Total daylight duration
-   * in milliseconds.
+   * Sunset.
+   */
+  sunset: Date;
+
+  /**
+   * Civil dusk.
+   *
+   * Sun reaches -6° altitude.
+   */
+  dusk: Date;
+
+  /**
+   * Daylight duration.
+   *
+   * Milliseconds.
    */
   dayLength: number;
 
   /**
-   * Daylight progression.
+   * Day progression.
    *
-   * Values:
-   * < 0  = before sunrise
-   * 0    = sunrise
-   * 0.5  = solar noon
-   * 1    = sunset
-   * > 1  = after sunset
+   * 0   = sunrise
+   * 0.5 = solar noon
+   * 1   = sunset
    */
   sunProgress: number;
+
+  /**
+   * Current solar phase.
+   */
+  phase: SunPhase;
+
+  /**
+   * Current sun position.
+   */
+  position: SunPosition;
+
+
+  direction: SunDirection;
+
+  light: SunLight;
 
   /**
    * Golden hour periods.
@@ -57,14 +139,12 @@ export interface SunTimes {
   };
 
   /**
-   * True when the current moment
-   * falls between sunrise and sunset.
+   * Sun above horizon.
    */
   isDay: boolean;
 
   /**
-   * True when the current moment
-   * falls outside daylight hours.
+   * Sun below horizon.
    */
   isNight: boolean;
 }

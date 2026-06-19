@@ -1,94 +1,212 @@
-const RAD = Math.PI / 180;
+export const RAD = Math.PI / 180;
 
-const J1970 = 2440588;
-const J2000 = 2451545;
-
-/**
- * @param date UTC date and time
- * @returns Julian Day Number (JD)
- */
-export function toJulian(date: Date): number {
-  return date.getTime() / 86400000 - 0.5 + J1970;
-}
+export const J1970 = 2440588;
 
 /**
- * @param j Julian Day Number (JD)
- * @returns JavaScript Date instance
+ * Converts Date → Julian Date.
  */
-export function fromJulian(j: number): Date {
-  return new Date((j + 0.5 - J1970) * 86400000);
-}
-
-
-/**
- * @param d Days since J2000 epoch
- * @returns Mean anomaly (radians)
- */
-export function solarMeanAnomaly(d: number): number {
-  return RAD * (357.5291 + 0.98560028 * d);
-}
-
-/**
- * Orbital eccentricity correction.
- *
- * @param M Solar mean anomaly (radians)
- * @returns Correction angle (radians)
- */
-export function equationOfCenter(M: number): number {
-  return RAD * (
-    1.9148 * Math.sin(M) +
-    0.02 * Math.sin(2 * M) +
-    0.0003 * Math.sin(3 * M)
+export function toJulian(
+  date: Date
+) {
+  return (
+    date.getTime() /
+      86400000 -
+    0.5 +
+    J1970
   );
 }
 
 /**
- * @param M Solar mean anomaly (radians)
- * @returns Ecliptic longitude (radians)
+ * Converts Julian Date → Date.
  */
-export function eclipticLongitude(M: number): number {
-  const C = equationOfCenter(M);
-  return M + C + RAD * 102.9372 + Math.PI;
+export function fromJulian(
+  j: number
+) {
+  return new Date(
+    (
+      j +
+      0.5 -
+      J1970
+    ) * 86400000
+  );
 }
 
 /**
- * @param L Ecliptic longitude (radians)
- * @returns Solar declination (radians)
+ * Solar mean anomaly.
  */
-export function declination(L: number): number {
+export function solarMeanAnomaly(
+  d: number
+) {
+  return (
+    RAD *
+    (
+      357.5291 +
+      0.98560028 * d
+    )
+  );
+}
+
+/**
+ * Equation of center.
+ */
+export function equationOfCenter(
+  M: number
+) {
+  return (
+    RAD *
+    (
+      1.9148 *
+        Math.sin(M) +
+      0.02 *
+        Math.sin(
+          2 * M
+        ) +
+      0.0003 *
+        Math.sin(
+          3 * M
+        )
+    )
+  );
+}
+
+/**
+ * Ecliptic longitude.
+ */
+export function eclipticLongitude(
+  M: number
+) {
+  const C =
+    equationOfCenter(M);
+
+  return (
+    M +
+    C +
+    RAD * 102.9372 +
+    Math.PI
+  );
+}
+
+/**
+ * Solar declination.
+ */
+export function declination(
+  L: number
+) {
   return Math.asin(
-    Math.sin(L) * Math.sin(RAD * 23.4397)
+    Math.sin(L) *
+      Math.sin(
+        RAD * 23.4397
+      )
   );
 }
 
 /**
- * Uses apparent horizon correction (-0.833°)
- * for atmospheric refraction and solar radius.
- *
- * @param lat Observer latitude (radians)
- * @param dec Solar declination (radians)
- * @returns Hour angle (radians)
+ * Right ascension.
  */
-export function hourAngle(lat: number, dec: number): number {
-  const h = -0.833 * RAD;
+export function rightAscension(
+  L: number
+) {
+  const e =
+    RAD * 23.4397;
 
-  return Math.acos(
-    (Math.sin(h) - Math.sin(lat) * Math.sin(dec)) /
-    (Math.cos(lat) * Math.cos(dec))
+  return Math.atan2(
+    Math.sin(L) *
+      Math.cos(e),
+    Math.cos(L)
   );
 }
 
 /**
- * Supports twilight and custom altitude calculations.
- *
- * @param lat Observer latitude (radians)
- * @param dec Solar declination (radians)
- * @param alt Target altitude (radians)
- * @returns Hour angle (radians)
+ * Local sidereal time.
  */
-export function hourAngleByAltitude(lat: number, dec: number, alt: number): number {
+export function siderealTime(
+  d: number,
+  lw: number
+) {
+  return (
+    RAD *
+      (
+        280.16 +
+        360.9856235 * d
+      ) -
+    lw
+  );
+}
+
+/**
+ * Solar azimuth.
+ */
+export function azimuth(
+  H: number,
+  phi: number,
+  dec: number
+) {
+  return Math.atan2(
+    Math.sin(H),
+    Math.cos(H) *
+      Math.sin(phi) -
+      Math.tan(dec) *
+        Math.cos(phi)
+  );
+}
+
+/**
+ * Solar altitude.
+ */
+export function altitude(
+  H: number,
+  phi: number,
+  dec: number
+) {
+  return Math.asin(
+    Math.sin(phi) *
+      Math.sin(dec) +
+      Math.cos(phi) *
+        Math.cos(dec) *
+        Math.cos(H)
+  );
+}
+
+/**
+ * Sunrise / sunset hour angle.
+ */
+export function hourAngle(
+  lat: number,
+  dec: number
+) {
+  const h =
+    -0.833 * RAD;
+
   return Math.acos(
-    (Math.sin(alt) - Math.sin(lat) * Math.sin(dec)) /
-    (Math.cos(lat) * Math.cos(dec))
+    (
+      Math.sin(h) -
+      Math.sin(lat) *
+        Math.sin(dec)
+    ) /
+      (
+        Math.cos(lat) *
+        Math.cos(dec)
+      )
+  );
+}
+
+/**
+ * Generic altitude hour angle.
+ */
+export function hourAngleByAltitude(
+  lat: number,
+  dec: number,
+  alt: number
+) {
+  return Math.acos(
+    (
+      Math.sin(alt) -
+      Math.sin(lat) *
+        Math.sin(dec)
+    ) /
+      (
+        Math.cos(lat) *
+        Math.cos(dec)
+      )
   );
 }
