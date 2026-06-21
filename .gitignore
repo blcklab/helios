@@ -1,6 +1,5 @@
 node_modules
 dist
-*test
 *.tgz
 .env
 .DS_Store
