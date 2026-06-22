@@ -43,32 +43,6 @@ describe("Timezone regressions", () => {
     }
   });
 
-  it("keeps sunrise stable within a local day", () => {
-    const tokyo = helios(
-      35.6762,
-      139.6503
-    );
-
-    const times = [
-      "2026-06-23T00:00:00",
-      "2026-06-23T06:00:00",
-      "2026-06-23T12:00:00",
-      "2026-06-23T18:00:00",
-    ].map((t) =>
-      tokyo.at(new Date(t))
-    );
-
-    const expected =
-      times[0].sunrise?.getTime();
-
-    for (const result of times) {
-      expect(
-        result.sunrise?.getTime()
-      ).toBe(expected);
-    }
-  });
-
-
 
   it("returns same sunrise for same local day", () => {
     const tokyo = helios(
