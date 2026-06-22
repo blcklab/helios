@@ -1,8 +1,8 @@
 # Changelog
 
-## v1.1.0
+## v1.1.2
 
-### Added
+### Features
 
 - Dawn and dusk calculations
 - Solar noon calculation
@@ -12,4 +12,3 @@
 - Dynamic sunlight intensity
 - Color temperature calculation
 - RGB sunlight color output
-- Day progress (`sunProgress`)

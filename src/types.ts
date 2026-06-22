@@ -60,8 +60,6 @@ export interface SunPosition {
   azimuth: number;
 }
 
-export type TimeMode = "local" | "utc" | "raw"
-
 
 export type SunPhase =
   | 'night'

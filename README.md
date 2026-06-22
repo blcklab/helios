@@ -184,7 +184,7 @@ When running `getTimes()`, the returned evaluation follows this strict structure
     rgb: { r: number, g: number, b: number } // Normalized linear RGB approximation [0, 1]
   },
 
-  goldenHour: {
+  civilTwilight: {
     morning: { start: Date, end: Date },
     evening: { start: Date, end: Date }
   },

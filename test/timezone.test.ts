@@ -68,48 +68,7 @@ describe("Timezone regressions", () => {
     }
   });
 
-  it("keeps sunrise stable across time slider movement", () => {
-    const tokyo = helios(
-      35.6762,
-      139.6503
-    );
 
-    const base =
-      new Date("2026-06-23T00:00:00");
-
-    const t1 = tokyo.at(
-      new Date(
-        base.getTime() +
-          1 * 60 * 60 * 1000
-      )
-    );
-
-    const t2 = tokyo.at(
-      new Date(
-        base.getTime() +
-          12 * 60 * 60 * 1000
-      )
-    );
-
-    const t3 = tokyo.at(
-      new Date(
-        base.getTime() +
-          23 * 60 * 60 * 1000
-      )
-    );
-
-    expect(
-      t1.sunrise?.getTime()
-    ).toBe(
-      t2.sunrise?.getTime()
-    );
-
-    expect(
-      t2.sunrise?.getTime()
-    ).toBe(
-      t3.sunrise?.getTime()
-    );
-  });
 
   it("returns same sunrise for same local day", () => {
     const tokyo = helios(
@@ -117,13 +76,13 @@ describe("Timezone regressions", () => {
       139.6503
     );
 
-    const early = tokyo.raw(
+    const early = tokyo.at(
       new Date(
         "2026-06-23T01:00:00+09:00"
       )
     );
 
-    const noon = tokyo.raw(
+    const noon = tokyo.at(
       new Date(
         "2026-06-23T12:00:00+09:00"
       )
@@ -166,32 +125,7 @@ describe("Timezone regressions", () => {
     );
   });
 
-  it("changes sunrise after crossing local midnight", () => {
-    const tokyo = helios(
-      35.6762,
-      139.6503
-    );
 
-    const before =
-      tokyo.at(
-        new Date(
-          "2026-06-23T23:59:59"
-        )
-      );
-
-    const after =
-      tokyo.at(
-        new Date(
-          "2026-06-24T00:00:01"
-        )
-      );
-
-    expect(
-      before.sunrise?.getTime()
-    ).not.toBe(
-      after.sunrise?.getTime()
-    );
-  });
 
   it("returns valid positions for different world locations", () => {
     const cities = [

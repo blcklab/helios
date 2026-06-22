@@ -6,7 +6,6 @@ import type {
   SunPosition,
   SunDirection,
   RGBColor,
-  TimeMode,
 } from "./types.js";
 
 import {
@@ -22,8 +21,6 @@ import {
   hourAngle,
   hourAngleByAltitude,
 } from "./core.js";
-
-import { anchor } from "./utils/time.js";
 
 const RAD = Math.PI / 180;
 
@@ -146,15 +143,13 @@ function kelvinToRGB(kelvin: number): RGBColor {
 /**
  * Calculates solar events.
  */
-export function getTimes(options: GetTimesOptions & {
-  mode?: TimeMode
-}): SunTimes {
+export function getTimes(options: GetTimesOptions): SunTimes {
 
-  const mode = options.mode ?? "local";
+  // const mode = options.mode ?? "local";
 
-  const base = new Date(options.date ?? Date.now())
+  const input = new Date(options.date ?? Date.now())
 
-  const input = anchor(base, mode)
+  // const input = anchor(base, mode)
 
   const lat = options.lat * RAD;
 
@@ -273,21 +268,18 @@ const isDay = hasSunEvents
 }
 
 export function helios(lat: number, lng: number) {
-  const times = (mode?: TimeMode) =>
-    (date?: Date) =>
-      getTimes({ lat, lng, date, mode });
-
-  const local = times("local");
-
   return {
-    getTimes: times(),
+    getTimes(date?: Date) {
+      return getTimes({ lat, lng, date });
+    },
 
-    local,
-    utc: times("utc"),
-    raw: times("raw"),
+    at(date?: Date) {
+      return getTimes({ lat, lng, date });
+    },
 
-    at: local,
-    now: () => local(),
+    now() {
+      return getTimes({ lat, lng });
+    },
 
     position(date = new Date()) {
       return getPosition(date, lat, lng);
