@@ -28,6 +28,13 @@ export interface SunLight {
 }
 
 export interface SunDirection {
+  /**
+   * Coordinate system:
+   *
+   * X = East
+   * Y = Up
+   * Z = North
+   */
   x: number;
   y: number;
   z: number;
@@ -53,6 +60,9 @@ export interface SunPosition {
   azimuth: number;
 }
 
+export type TimeMode = "local" | "utc" | "raw"
+
+
 export type SunPhase =
   | 'night'
   | 'dawn'
@@ -66,12 +76,12 @@ export interface SunTimes {
    *
    * Sun reaches -6° altitude.
    */
-  dawn: Date;
+  dawn: Date | null;
 
   /**
    * Sunrise.
    */
-  sunrise: Date;
+  sunrise: Date | null;
 
   /**
    * Solar noon.
@@ -83,30 +93,24 @@ export interface SunTimes {
   /**
    * Sunset.
    */
-  sunset: Date;
+  sunset: Date | null;
 
   /**
    * Civil dusk.
    *
    * Sun reaches -6° altitude.
    */
-  dusk: Date;
+  dusk: Date | null;
 
   /**
    * Daylight duration.
    *
    * Milliseconds.
+   *
+   * May be 0 when sunrise/sunset
+   * do not occur on the given date.
    */
   dayLength: number;
-
-  /**
-   * Day progression.
-   *
-   * 0   = sunrise
-   * 0.5 = solar noon
-   * 1   = sunset
-   */
-  sunProgress: number;
 
   /**
    * Current solar phase.
@@ -118,23 +122,36 @@ export interface SunTimes {
    */
   position: SunPosition;
 
-
+  /**
+   * Sun direction vector.
+   */
   direction: SunDirection;
 
+  /**
+   * Estimated sunlight properties.
+   */
   light: SunLight;
 
   /**
-   * Golden hour periods.
+   * Civil twilight periods.
+   *
+   * Morning:
+   * -6° → sunrise
+   *
+   * Evening:
+   * sunset → -6°
+   *
+   * May be null in polar regions.
    */
-  goldenHour: {
+  civilTwilight: {
     morning: {
-      start: Date;
-      end: Date;
+      start: Date | null;
+      end: Date | null;
     };
 
     evening: {
-      start: Date;
-      end: Date;
+      start: Date | null;
+      end: Date | null;
     };
   };
 

@@ -3,7 +3,11 @@ import type {
   SunTimes,
   SunLight,
   SunPhase,
-} from './types.js'
+  SunPosition,
+  SunDirection,
+  RGBColor,
+  TimeMode,
+} from "./types.js";
 
 import {
   toJulian,
@@ -17,171 +21,87 @@ import {
   altitude,
   hourAngle,
   hourAngleByAltitude,
-} from './core.js'
+} from "./core.js";
 
-const RAD = Math.PI / 180
+import { anchor } from "./utils/time.js";
 
-const J2000 = 2451545
+const RAD = Math.PI / 180;
+
+const J2000 = 2451545;
+
+const TAU = 2 * Math.PI;
 
 /**
  * Civil twilight.
  *
  * Sun altitude = -6°
  */
-const TWILIGHT_ANGLE =
-  -6 * RAD
+const TWILIGHT_ANGLE = -6 * RAD;
 
 /**
  * Returns current sun position.
  */
-function getPosition(
-  date: Date,
-  lat: number,
-  lng: number
-) {
-  const lw =
-    -lng * RAD
+function getPosition(date: Date, lat: number, lng: number): SunPosition {
+  const lw = -lng * RAD;
 
-  const phi =
-    lat * RAD
+  const phi = lat * RAD;
 
-  const d =
-    toJulian(date) -
-    J2000
+  const d = toJulian(date) - J2000;
 
-  const M =
-    solarMeanAnomaly(d)
+  const M = solarMeanAnomaly(d);
 
-  const L =
-    eclipticLongitude(M)
+  const L = eclipticLongitude(M);
 
-  const dec =
-    declination(L)
+  const dec = declination(L);
 
-  const ra =
-    rightAscension(L)
+  const ra = rightAscension(L);
 
-  const H =
-    siderealTime(
-      d,
-      lw
-    ) - ra
+  const H = siderealTime(d, lw) - ra;
 
-  const h =
-    altitude(
-      H,
-      phi,
-      dec
-    )
+  const h = altitude(H, phi, dec);
 
-  const a =
-    azimuth(
-      H,
-      phi,
-      dec
-    )
+  const a = azimuth(H, phi, dec);
 
   return {
-    altitude:
-      h / RAD,
+    altitude: h / RAD,
 
-    azimuth:
-      (
-        a / RAD +
-        180
-      ) % 360,
-  }
+    azimuth: (a / RAD + 180) % 360,
+  };
 }
 
-function getDirection(
-  date: Date,
-  lat: number,
-  lng: number
-) {
-  const pos =
-    getPosition(
-      date,
-      lat,
-      lng
-    )
+function getDirection(position: SunPosition): SunDirection {
+  const altitude = position.altitude * RAD;
 
-  const altitude =
-    pos.altitude *
-    RAD
-
-  const azimuth =
-    pos.azimuth *
-    RAD
+  const azimuth = position.azimuth * RAD;
 
   return {
-    x:
-      Math.cos(
-        altitude
-      ) *
-      Math.sin(
-        azimuth
-      ),
+    x: Math.cos(altitude) * Math.sin(azimuth),
 
-    y:
-      Math.sin(
-        altitude
-      ),
+    y: Math.sin(altitude),
 
-    z:
-      Math.cos(
-        altitude
-      ) *
-      Math.cos(
-        azimuth
-      ),
-  }
+    z: Math.cos(altitude) * Math.cos(azimuth),
+  };
 }
 
-function getLight(
-  altitude: number
-): SunLight {
-
+function getLight(altitude: number): SunLight {
   const colorTemperature =
     altitude <= 0
       ? 2000
-      : 2000 +
-        Math.max(
-          0,
-          Math.min(
-            1,
-            altitude / 90
-          )
-        ) *
-        4500
+      : 2000 + Math.max(0, Math.min(1, altitude / 90)) * 4500;
 
+  const rgb = kelvinToRGB(colorTemperature);
 
-  const rgb =
-    kelvinToRGB(
-      colorTemperature
-    )
-
-
-  if (
-    altitude <= 0
-  ) {
+  if (altitude <= 0) {
     return {
       intensity: 0,
 
       colorTemperature,
 
       rgb,
-    }
+    };
   }
 
-
-  const intensity =
-    Math.pow(
-      Math.sin(
-        altitude * RAD
-      ),
-      0.5
-    )
-
+  const intensity = Math.pow(Math.max(0, Math.sin(altitude * RAD)), 0.5);
 
   return {
     intensity,
@@ -189,15 +109,11 @@ function getLight(
     colorTemperature,
 
     rgb,
-  }
+  };
 }
 
-
-function kelvinToRGB(
-  kelvin: number
-) {
-  const temp =
-    kelvin / 100;
+function kelvinToRGB(kelvin: number): RGBColor {
+  const temp = kelvin / 100;
 
   let r;
   let g;
@@ -206,283 +122,139 @@ function kelvinToRGB(
   if (temp <= 66) {
     r = 255;
 
-    g =
-      99.4708025861 *
-        Math.log(
-          temp
-        ) -
-      161.1195681661;
+    g = 99.4708025861 * Math.log(temp) - 161.1195681661;
 
-    b =
-      temp <= 19
-        ? 0
-        : 138.5177312231 *
-            Math.log(
-              temp - 10
-            ) -
-          305.0447927307;
-  }
-  else {
-    r =
-      329.698727446 *
-      Math.pow(
-        temp - 60,
-        -0.1332047592
-      );
+    b = temp <= 19 ? 0 : 138.5177312231 * Math.log(temp - 10) - 305.0447927307;
+  } else {
+    r = 329.698727446 * Math.pow(temp - 60, -0.1332047592);
 
-    g =
-      288.1221695283 *
-      Math.pow(
-        temp - 60,
-        -0.0755148492
-      );
+    g = 288.1221695283 * Math.pow(temp - 60, -0.0755148492);
 
     b = 255;
   }
 
   return {
-    r:
-      Math.max(
-        0,
-        Math.min(
-          255,
-          r
-        )
-      ) / 255,
+    r: Math.max(0, Math.min(255, r)) / 255,
 
-    g:
-      Math.max(
-        0,
-        Math.min(
-          255,
-          g
-        )
-      ) / 255,
+    g: Math.max(0, Math.min(255, g)) / 255,
 
-    b:
-      Math.max(
-        0,
-        Math.min(
-          255,
-          b
-        )
-      ) / 255,
+    b: Math.max(0, Math.min(255, b)) / 255,
   };
 }
+
 
 /**
  * Calculates solar events.
  */
-export function getTimes(
-  options: GetTimesOptions
-): SunTimes {
-  const date =
-    options.date
-      ? new Date(
-          options.date
-        )
-      : new Date()
+export function getTimes(options: GetTimesOptions & {
+  mode?: TimeMode
+}): SunTimes {
 
-  date.setHours(
-    0,
-    0,
-    0,
-    0
-  )
 
-  const lat =
-    options.lat * RAD
+  // const mode = options.mode ?? "local"
 
-  const lng =
-    options.lng * RAD
+  const base = new Date(options.date ?? Date.now())
+  const input = anchor(base, options.mode)
 
-  const lw = -lng
+  // const input = options.date ? new Date(options.date) : new Date();
 
-  const d =
-    toJulian(date) -
-    J2000
+  // const input = getDayAnchorUTC(date);
 
-  const n =
-    Math.round(
-      d -
-        0.0009 -
-        lw /
-          (2 * Math.PI)
-    )
+  // const input = options.date ? new Date(options.date);
 
-  const ds =
-    0.0009 +
-    lw /
-      (2 * Math.PI) +
-    n
+  // const date = input;
 
-  const M =
-    solarMeanAnomaly(ds)
+  // input.setHours(0, 0, 0, 0);
 
-  const L =
-    eclipticLongitude(M)
 
-  const dec =
-    declination(L)
+//   const input = new Date(options.date ?? Date.now());
 
-  const Jtransit =
-    J2000 +
-    ds +
-    0.0053 *
-      Math.sin(M) -
-    0.0069 *
-      Math.sin(
-        2 * L
-      )
 
-  const solarNoon =
-    fromJulian(
-      Jtransit
-    )
+// input.setHours(0, 0, 0, 0);
 
-  const w =
-    hourAngle(
-      lat,
-      dec
-    )
 
-  const Jrise =
-    Jtransit -
-    w /
-      (2 * Math.PI)
 
-  const Jset =
-    Jtransit +
-    w /
-      (2 * Math.PI)
 
-  const sunrise =
-    fromJulian(
-      Jrise
-    )
+  const lat = options.lat * RAD;
 
-  const sunset =
-    fromJulian(
-      Jset
-    )
+  const lng = options.lng * RAD;
+
+  const lw = -lng;
+
+
+  
+
+  const d = toJulian(input) - J2000;
+
+  // const d = toJulian(date) - J2000;
+
+  const n = Math.round(d - 0.0009 - lw / TAU);
+
+  const ds = 0.0009 + lw / TAU + n;
+
+  const M = solarMeanAnomaly(ds);
+
+  const L = eclipticLongitude(M);
+
+  const dec = declination(L);
+
+  const Jtransit = J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+
+  const solarNoon = fromJulian(Jtransit);
+
+  const w = hourAngle(lat, dec);
+
+  const sunrise = w === null ? null : fromJulian(Jtransit - w / TAU);
+
+  const sunset = w === null ? null : fromJulian(Jtransit + w / TAU);
 
   /**
    * Dawn / dusk.
    */
-  const wTwilight =
-    hourAngleByAltitude(
-      lat,
-      dec,
-      TWILIGHT_ANGLE
-    )
+  const wTwilight = hourAngleByAltitude(lat, dec, TWILIGHT_ANGLE);
 
   const dawn =
-    fromJulian(
-      Jtransit -
-        wTwilight /
-          (2 *
-            Math.PI)
-    )
+    wTwilight === null ? null : fromJulian(Jtransit - wTwilight / TAU);
 
   const dusk =
-    fromJulian(
-      Jtransit +
-        wTwilight /
-          (2 *
-            Math.PI)
-    )
+    wTwilight === null ? null : fromJulian(Jtransit + wTwilight / TAU);
+
+  
+
+  const position = getPosition(input, options.lat, options.lng);
+
+  const direction = getDirection(position);
+
+  const light = getLight(position.altitude);
+
+  
+  const hasSunEvents = sunrise !== null && sunset !== null;
 
   const dayLength =
-    sunset.getTime() -
-    sunrise.getTime()
+    hasSunEvents ? sunset.getTime() - sunrise.getTime() : 0;
 
-  const now =
-    options.date
-      ? new Date(
-          options.date
-        )
-      : new Date()
+const isDay = hasSunEvents
+  ? input >= sunrise && input <= sunset
+  : position.altitude > 0;
 
-  const position =
-    getPosition(
-      now,
-      options.lat,
-      options.lng
-    )
+  const isNight = !isDay;
 
-    const direction =
-  getDirection(
-    now,
-    options.lat,
-    options.lng
-  )
+  let phase: SunPhase;
 
-  const light =
-  getLight(
-    position.altitude
-  )
-
-  const startOfDay =
-  new Date(now)
-
-startOfDay.setHours(
-  0,
-  0,
-  0,
-  0
-)
-
-const dayProgress =
-  (
-    now.getTime() -
-    startOfDay.getTime()
-  ) /
-  (
-    24 *
-    60 *
-    60 *
-    1000
-  )
-
-const sunProgress =
-  Math.max(
-    0,
-    Math.min(
-      1,
-      dayProgress
-    )
-  )
-    
-
-  let phase: SunPhase
-
-  if (
-    now < dawn
-  ) {
-    phase = 'night'
-  }
-  else if (
-    now < sunrise
-  ) {
-    phase = 'dawn'
-  }
-  else if (
-    now < solarNoon
-  ) {
-    phase = 'morning'
-  }
-  else if (
-    now < sunset
-  ) {
-    phase = 'day'
-  }
-  else if (
-    now < dusk
-  ) {
-    phase = 'sunset'
-  }
-  else {
-    phase = 'night'
+  if (!sunrise || !sunset || !dawn || !dusk) {
+    phase = position.altitude > 0 ? "day" : "night";
+  } else if (input < dawn) {
+    phase = "night";
+  } else if (input < sunrise) {
+    phase = "dawn";
+  } else if (input < solarNoon) {
+    phase = "morning";
+  } else if (input < sunset) {
+    phase = "day";
+  } else if (input < dusk) {
+    phase = "sunset";
+  } else {
+    phase = "night";
   }
 
   return {
@@ -498,8 +270,6 @@ const sunProgress =
 
     dayLength,
 
-    sunProgress,
-
     phase,
 
     position,
@@ -508,7 +278,7 @@ const sunProgress =
 
     light,
 
-    goldenHour: {
+    civilTwilight: {
       morning: {
         start: dawn,
         end: sunrise,
@@ -520,60 +290,98 @@ const sunProgress =
       },
     },
 
-    isDay:
-      now >= sunrise &&
-      now <= sunset,
+    isDay,
 
-    isNight:
-      now < sunrise ||
-      now > sunset,
-  }
+    isNight,
+  };
 }
 
 /**
  * Creates a reusable
  * location-bound calculator.
  */
-export function helios(
-  lat: number,
-  lng: number
-) {
+// export function helios(lat: number, lng: number) {
+//   return {
+//     getTimes(date?: Date) {
+//       return getTimes({
+//         lat,
+//         lng,
+//         date,
+//       });
+//     },
+
+//     local(date?: Date) {
+//       return getTimes({
+//         lat,
+//         lng,
+//         date,
+//         mode: "local",
+//       })
+//     },
+
+//     utc(date?: Date) {
+//       return getTimes({
+//         lat,
+//         lng,
+//         date,
+//         mode: "utc",
+//       })
+//     },
+
+//     raw(date?: Date) {
+//       return getTimes({
+//         lat,
+//         lng,
+//         date,
+//         mode: "raw",
+//       })
+//     },
+
+//     at(date: Date) {
+//       return getTimes({
+//         lat,
+//         lng,
+//         date,
+//         mode: 'local',
+//       });
+//     },
+
+//     now() {
+//       return getTimes({
+//         lat,
+//         lng,
+//         mode: 'local',
+//       });
+//     },
+
+//     position(date = new Date()) {
+//       return getPosition(date, lat, lng);
+//     },
+//   };
+// }
+
+
+
+
+export function helios(lat: number, lng: number) {
+  const times = (mode?: TimeMode) =>
+    (date?: Date) =>
+      getTimes({ lat, lng, date, mode });
+
+  const local = times("local");
+
   return {
-    getTimes(
-      date?: Date
-    ) {
-      return getTimes({
-        lat,
-        lng,
-        date,
-      })
-    },
+    getTimes: times(),
 
-    at(
-      date: Date
-    ) {
-      return getTimes({
-        lat,
-        lng,
-        date,
-      })
-    },
+    local,
+    utc: times("utc"),
+    raw: times("raw"),
 
-    now() {
-      return getTimes({
-        lat,
-        lng,
-      })
-    },
+    at: local,
+    now: () => local(),
 
-    position(
-      date = new Date()
-    ) {
-      return getPosition(
-        date,
-        lat,
-        lng
-      )
+    position(date = new Date()) {
+      return getPosition(date, lat, lng);
     },
-  }
+  };
 }

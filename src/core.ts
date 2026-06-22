@@ -168,26 +168,45 @@ export function altitude(
 }
 
 /**
+ * Hour angle for a given solar altitude.
+ *
+ * Returns null if the event never occurs
+ * (e.g. polar day/night).
+ */
+function acosHourAngle(
+  lat: number,
+  dec: number,
+  alt: number
+) {
+  const x =
+    (
+      Math.sin(alt) -
+      Math.sin(lat) * Math.sin(dec)
+    ) /
+    (
+      Math.cos(lat) *
+      Math.cos(dec)
+    )
+
+  if (x < -1 || x > 1)
+    return null
+
+  return Math.acos(x)
+}
+
+/**
  * Sunrise / sunset hour angle.
  */
 export function hourAngle(
   lat: number,
   dec: number
 ) {
-  const h =
-    -0.833 * RAD;
 
-  return Math.acos(
-    (
-      Math.sin(h) -
-      Math.sin(lat) *
-        Math.sin(dec)
-    ) /
-      (
-        Math.cos(lat) *
-        Math.cos(dec)
-      )
-  );
+  return acosHourAngle(
+    lat,
+    dec,
+    -0.833 * RAD
+  )
 }
 
 /**
@@ -198,15 +217,10 @@ export function hourAngleByAltitude(
   dec: number,
   alt: number
 ) {
-  return Math.acos(
-    (
-      Math.sin(alt) -
-      Math.sin(lat) *
-        Math.sin(dec)
-    ) /
-      (
-        Math.cos(lat) *
-        Math.cos(dec)
-      )
-  );
+
+  return acosHourAngle(
+    lat,
+    dec,
+    alt
+  )
 }
