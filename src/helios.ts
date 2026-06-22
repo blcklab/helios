@@ -150,30 +150,11 @@ export function getTimes(options: GetTimesOptions & {
   mode?: TimeMode
 }): SunTimes {
 
-
-  // const mode = options.mode ?? "local"
+  const mode = options.mode ?? "local";
 
   const base = new Date(options.date ?? Date.now())
-  const input = anchor(base, options.mode)
 
-  // const input = options.date ? new Date(options.date) : new Date();
-
-  // const input = getDayAnchorUTC(date);
-
-  // const input = options.date ? new Date(options.date);
-
-  // const date = input;
-
-  // input.setHours(0, 0, 0, 0);
-
-
-//   const input = new Date(options.date ?? Date.now());
-
-
-// input.setHours(0, 0, 0, 0);
-
-
-
+  const input = anchor(base, mode)
 
   const lat = options.lat * RAD;
 
@@ -181,12 +162,7 @@ export function getTimes(options: GetTimesOptions & {
 
   const lw = -lng;
 
-
-  
-
   const d = toJulian(input) - J2000;
-
-  // const d = toJulian(date) - J2000;
 
   const n = Math.round(d - 0.0009 - lw / TAU);
 
@@ -295,73 +271,6 @@ const isDay = hasSunEvents
     isNight,
   };
 }
-
-/**
- * Creates a reusable
- * location-bound calculator.
- */
-// export function helios(lat: number, lng: number) {
-//   return {
-//     getTimes(date?: Date) {
-//       return getTimes({
-//         lat,
-//         lng,
-//         date,
-//       });
-//     },
-
-//     local(date?: Date) {
-//       return getTimes({
-//         lat,
-//         lng,
-//         date,
-//         mode: "local",
-//       })
-//     },
-
-//     utc(date?: Date) {
-//       return getTimes({
-//         lat,
-//         lng,
-//         date,
-//         mode: "utc",
-//       })
-//     },
-
-//     raw(date?: Date) {
-//       return getTimes({
-//         lat,
-//         lng,
-//         date,
-//         mode: "raw",
-//       })
-//     },
-
-//     at(date: Date) {
-//       return getTimes({
-//         lat,
-//         lng,
-//         date,
-//         mode: 'local',
-//       });
-//     },
-
-//     now() {
-//       return getTimes({
-//         lat,
-//         lng,
-//         mode: 'local',
-//       });
-//     },
-
-//     position(date = new Date()) {
-//       return getPosition(date, lat, lng);
-//     },
-//   };
-// }
-
-
-
 
 export function helios(lat: number, lng: number) {
   const times = (mode?: TimeMode) =>
