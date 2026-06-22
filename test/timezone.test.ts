@@ -117,13 +117,13 @@ describe("Timezone regressions", () => {
       139.6503
     );
 
-    const early = tokyo.at(
+    const early = tokyo.raw(
       new Date(
         "2026-06-23T01:00:00+09:00"
       )
     );
 
-    const noon = tokyo.at(
+    const noon = tokyo.raw(
       new Date(
         "2026-06-23T12:00:00+09:00"
       )
