@@ -11,7 +11,7 @@ Pure, stateless, and framework-agnostic.
   <img src="https://img.shields.io/npm/v/@blcklab/helios?style=flat-square" alt="npm version" />
   <img src="https://img.shields.io/npm/dm/@blcklab/helios?style=flat-square" alt="downloads" />
   <img src="https://github.com/blcklab/helios/actions/workflows/test.yml/badge.svg?style=flat-square" alt="tests" />
-  <img src="https://img.shields.io/github/license/blcklab/helios?style=flat-square" alt="license" />
+  <img src="https://img.shields.io/github/license/blcklab/helios?style=flat-square&v=2" alt="license" />
 </p>
 
 ---
